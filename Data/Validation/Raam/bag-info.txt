@@ -1,0 +1,4 @@
+Mime-Types: txt=text/plain kmz=application/zip csv=text/csv
+Bagging-Date: 2017-05-31
+Bag-Size: 37.9 MB.19
+Payload-Oxum: 39786968

@@ -1,0 +1,24 @@
+Digital elevation model:
+Name: AHN database
+Link: http://ahn.maps.arcgis.com/home/index.html
+
+Soil data:
+Name: BOFEK2012 database
+Link: http://www.wur.nl/nl/show/Bodemfysische-Eenhedenkaart-BOFEK2012.htm
+
+Land use data:
+Name: Basisregistratie Gewaspercelen (BRP)
+Link: https://www.pdok.nl/nl/service/wfs-basisregistratie-gewaspercelen-brp
+
+Groundwater data:
+Name: DINOloket database
+Link: https://www.dinoloket.nl/ondergrondgegevens
+
+Meteorological data:
+Name: KNMI precipitation and weather stations datasets (relavant stations at Volkel, Mill and St. Anthonis)
+Link weather stations (Volkel): https://www.knmi.nl/nederland-nu/klimatologie/uurgegevens
+Link precipitation stations (Mill and St. Anthonis): https://www.knmi.nl/nederland-nu/klimatologie/monv/reeksen
+
+Specification Decagon 5TM soil moisture sensors:
+Name: Website Decagon Devices
+Link: https://www.decagon.com/en/soils/volumetric-water-content-sensors/5tm-vwc-temp/
