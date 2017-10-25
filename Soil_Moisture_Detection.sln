@@ -3,9 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "A_Data_Collection", "A_Data_Collection\A_Data_Collection.pyproj", "{44B8DE26-2E60-4134-A89B-86995630534E}"
-EndProject
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "D_Validation", "D_Validation\D_Validation.pyproj", "{85D251AF-4F54-44A8-A45B-B2B3C8149127}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "SM_Calculation", "A_Data_Collection\SM_Calculation.pyproj", "{44B8DE26-2E60-4134-A89B-86995630534E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,8 +13,6 @@ Global
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{44B8DE26-2E60-4134-A89B-86995630534E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{44B8DE26-2E60-4134-A89B-86995630534E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{85D251AF-4F54-44A8-A45B-B2B3C8149127}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{85D251AF-4F54-44A8-A45B-B2B3C8149127}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
