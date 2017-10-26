@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27004.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "SM_Calculation", "A_Data_Collection\SM_Calculation.pyproj", "{44B8DE26-2E60-4134-A89B-86995630534E}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "SM", "SM\SM.pyproj", "{9C56B83A-35C9-4A92-8426-7E6DB73FB23A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,8 +11,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{44B8DE26-2E60-4134-A89B-86995630534E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{44B8DE26-2E60-4134-A89B-86995630534E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9C56B83A-35C9-4A92-8426-7E6DB73FB23A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9C56B83A-35C9-4A92-8426-7E6DB73FB23A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

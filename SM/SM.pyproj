@@ -2,16 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>44b8de26-2e60-4134-a89b-86995630534e</ProjectGuid>
-    <ProjectHome>
-    </ProjectHome>
-    <StartupFile>A_Data_Collection.py</StartupFile>
+    <ProjectGuid>9c56b83a-35c9-4a92-8426-7e6db73fb23a</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>SM.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>.</WorkingDirectory>
+    <WorkingDirectory>C:\Users\r.maas\Source\Repos\Soil_Moisture_Detection</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>SM_Calculation</Name>
-    <RootNamespace>A_Data_Collection</RootNamespace>
+    <Name>SM</Name>
+    <RootNamespace>SM</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,7 +21,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="A_Data_Collection.py" />
+    <Compile Include="SM.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
