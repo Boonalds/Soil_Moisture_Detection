@@ -4,10 +4,10 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9c56b83a-35c9-4a92-8426-7e6db73fb23a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Validation.py</StartupFile>
+    <StartupFile>Data_Collection.py</StartupFile>
     <SearchPath>
     </SearchPath>
-    <WorkingDirectory>D:\test\</WorkingDirectory>
+    <WorkingDirectory>C:\Users\r.maas\Source\Repos\Soil_Moisture_Detection\</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <Name>SM</Name>
     <RootNamespace>SM</RootNamespace>
