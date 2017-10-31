@@ -5,12 +5,11 @@ is used for this: http://sentinelsat.readthedocs.io/en/stable/
 
 ### Import libraries
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
+from sentinelhub import download_safe_format
 from geojson import Polygon
+from datetime import datetime
 import csv
 import numpy as np
-
-### Connect to the API
-api = SentinelAPI('boonalds', '123abc987zyx', 'https://scihub.copernicus.eu/dhus')
 
 
 ### Define area of interest, which is to  be downloaded
@@ -30,15 +29,37 @@ del val_loc_data[0]
 footprint = "POLYGON((" + str(x_min) + " " + str(y_min) + "," + str(x_max) + " " + str(y_min) + "," + str(x_max) + " " + str(y_max) + "," + str(x_min) + " " + str(y_max) + "," + str(x_min) + " " + str(y_min) + "))"
 
 
-### Download only 
 
+### Download Images:
+# Connect to the SciHub API
+api = SentinelAPI('boonalds', '123abc987zyx', 'https://scihub.copernicus.eu/dhus')
 
-
-
-
-### Download using Sentinelsat (full granules):
+# Search database for all available images
 products = api.query(footprint,
-                     date = ('20160505', '20160605'),
+                     area_relation='Contains',
+                     date = ('20161215', '20170115'),
                      platformname='Sentinel-2',
                      cloudcoverpercentage=(0, 100))
-# api.download_all(products)
+
+
+# Convert search results to Pandas DataFrame
+products_df = api.to_dataframe(products)
+
+# Download the tile for each image, download images with new naming convention from Amazon AWS
+tile_name = '31UFT'
+
+print("    ....:::: DOWNLOADING IMAGES ::::....")
+for i in range(0,len(products_df)):
+    print("Download of image " + str(i+1) + "/" + str(len(products_df)) + " started..")
+    ts = products_df['ingestiondate'].iloc[i]
+    i_name = products_df['title'].iloc[i]
+    if ts >= datetime(2016, 12, 6):
+        download_safe_format(i_name)
+    elif ts < datetime(2016, 12, 6):
+        download_safe_format(tile=(tile_name, ts.strftime('%Y-%m-%d')))
+    else:
+        print("Incompatible Ingestion Date")
+
+
+print("All downloads completed.")
+
