@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9c56b83a-35c9-4a92-8426-7e6db73fb23a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Data_Collection.py</StartupFile>
+    <StartupFile>Data_Col2.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>C:\Users\r.maas\Source\Repos\Soil_Moisture_Detection\</WorkingDirectory>
@@ -22,7 +22,11 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Data_Col2.py" />
     <Compile Include="Data_Collection.py" />
+    <Compile Include="module2.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Sentinel_download.py" />
     <Compile Include="Validation.py" />
   </ItemGroup>

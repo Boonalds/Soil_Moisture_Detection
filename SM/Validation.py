@@ -16,7 +16,7 @@ Val_SM_10cm = []
 ### Directory containing validation files
 ValDir = './Data/Validation/Raam/data/station_data/'
 
-### Read Validation Data and store data and headings in different arrays
+### Read Validation data and store data and headings in different arrays
 for file in os.listdir(ValDir):
     label_names = label_names + ["Field "+file[6:8]]
     with open(os.path.join(ValDir, file), newline='') as csvfile:

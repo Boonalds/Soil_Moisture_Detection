@@ -1,6 +1,7 @@
 """
 Script for  downloading the required Sentinel-2 Data from the SciHub API. The Sentinelsat package
-is used for this: http://sentinelsat.readthedocs.io/en/stable/
+is used for this: http://sentinelsat.readthedocs.io/en/stable/. This script successfully downloads the images
+at Level-1A processing level from the Amazon AWS Archive, at granule size.
 """
 
 ### Import libraries
@@ -9,8 +10,9 @@ from sentinelhub import download_safe_format
 from geojson import Polygon
 from datetime import datetime
 import csv
+import sys
 import numpy as np
-
+import snappy
 
 ### Define area of interest, which is to  be downloaded
 # based on validation data
@@ -46,20 +48,24 @@ products = api.query(footprint,
 products_df = api.to_dataframe(products)
 
 # Download the tile for each image, download images with new naming convention from Amazon AWS
-tile_name = '31UFT'
+tile_name = '31UFT'   # For now, later I can loop through all 4 tiles (with 4 seperate queries to download all NL data, or make only data from 6 december 2016 available.) 
 
 print("    ....:::: DOWNLOADING IMAGES ::::....")
-for i in range(0,len(products_df)):
-    print("Download of image " + str(i+1) + "/" + str(len(products_df)) + " started..")
+for i in range(0,1): # len(products_df)
+    # print("Download of image " + str(i+1) + "/" + str(len(products_df)) + " started..")
     ts = products_df['ingestiondate'].iloc[i]
     i_name = products_df['title'].iloc[i]
     if ts >= datetime(2016, 12, 6):
-        download_safe_format(i_name)
+        print(i_name)
+        # download_safe_format(i_name)
     elif ts < datetime(2016, 12, 6):
-        download_safe_format(tile=(tile_name, ts.strftime('%Y-%m-%d')))
+        print(i_name)
+        # download_safe_format(tile=(tile_name, ts.strftime('%Y-%m-%d')))
     else:
         print("Incompatible Ingestion Date")
 
 
 print("All downloads completed.")
+
+
 
