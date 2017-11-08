@@ -23,8 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Data_Col2.py" />
+    <Compile Include="Data_Colection2.py" />
     <Compile Include="Data_Collection.py" />
-    <Compile Include="module2.py">
+    <Compile Include="Data_Processing.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Sentinel_download.py" />

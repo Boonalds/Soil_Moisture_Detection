@@ -143,3 +143,5 @@ for i in range(len(data["features"])):
             print("Cloud cover too high : %s") % (cloudCover) 
     elif file_exists:
         print("%s already exists") % (prod)
+
+
