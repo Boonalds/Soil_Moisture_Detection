@@ -19,10 +19,14 @@ from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
 from sentinelhub import *
 from geojson import Polygon
 from datetime import datetime
-import os, os.path, optparse,sys
+from xml.etree import ElementTree
+from . import download
+import os, os.path, optparse
 import csv
 import sys
 import numpy as np
+import requests
+import urllib.request
 
 
 
@@ -31,14 +35,14 @@ import numpy as np
 #====================================================================================================
 
 # Image search definitions
-date_start = '20170205'     # Starting date
-date_end = '20170305'       # End date
+date_start = '20160430'     # Starting date '20160606', '20160430' 
+date_end = '20160502'       # End date      '20160608', '20160502' 
 cloudMax = 100              # Maximum cloud cover [%]
-tile_name = '31UFT'         # Tile ID (For now, later I can loop through all 4 tiles (with 4 seperate 
+tileID = '31UFT'         # Tile ID (For now, later I can loop through all 4 tiles (with 4 seperate 
                             # queries to download all NL data, or make only data from 6 december 2016 available.) 
 
 # Directory allocation
-dir_out = "C:\S2_Data"          # Directory where images are to be downloaded to
+dir_out = "C:/S2_Data/test/"          # Directory where images are to be downloaded to
 val_loc_file = './Data/Validation/Raam/data/metadata/Raam_station_locations_WGS84.csv'      # Location of validation data
 
 # SciHub API info
@@ -46,6 +50,35 @@ login_sh='boonalds'
 password_sh='123abc987zyx'
 sh_api_url = 'https://scihub.copernicus.eu/dhus'
 
+# Parameters for transforming the old structure to SAFE
+MAIN_URL = 'http://sentinel-s2-l1c.s3-website.eu-central-1.amazonaws.com/'
+
+
+
+#====================================================================================================
+# Function definitions
+#====================================================================================================
+
+# To create folders (if they do not exists already)
+def make_folder(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+# To download files from url to selected locations (filenames)
+def f_download(url, filename):
+    response = requests.get(url)
+    with open(filename, 'wb') as f:
+        f.write(response.content)
+
+# To edit names, by changing the 3rd code and optionally the 4th and/or deleting the last as well
+def edit_name(name, code, add_code=None, delete_end=False):
+    info = name.split('_')
+    info[2] = code
+    if add_code is not None:
+        info[3] = add_code
+    if delete_end:
+        info.pop()
+    return '_'.join(info)
 
 
 #====================================================================================================
@@ -82,28 +115,53 @@ products = api.query(footprint,
 
 # Convert search results to Pandas DataFrame
 products_df = api.to_dataframe(products)
+# print(products_df)
 
 # Start the downloading loop
-print("    ....:::: DOWNLOADING IMAGES ::::....")
+#print("    ....:::: DOWNLOADING IMAGES ::::....")
 for i in range(0,len(products_df)): # 
     print("Download of image " + str(i+1) + "/" + str(len(products_df)) + " started..")
     ts = products_df['beginposition'].iloc[i]
     i_name = products_df['title'].iloc[i]
     if ts >= datetime(2016, 12, 6):
-        download_safe_format(i_name,folder=dir_out)
+        q = 1
+        # download_safe_format(i_name,folder=dir_out)
     elif ts < datetime(2016, 12, 6):
-        # print(i_name)
-        download_safe_format(tile=(tile_name, ts.strftime('%Y-%m-%d')),folder=dir_out)
+        # Main urls to download from:
+        url_prod = MAIN_URL+'#products/'+ts.strftime('%Y')+'/'+ts.strftime('%#m')+'/'+ts.strftime('%#d')+'/'+i_name+'/'
+        url_tile = MAIN_URL+'#tiles/'+tileID[0]+'/'+tileID[1:2]+'/'+ts.strftime('%Y')+'/'+ts.strftime('%#m')+'/'+ts.strftime('%#d')+'/0/'
+        
+        ### Create and fill directories:
+        # Main folder
+        main = dir_out+i_name
+        make_folder(main)
+
+        ddd=url_prod+'preview.png'
+        fff=main+'/'+edit_name(i_name, 'BWI')+'.png'
+
+
+
+        #urllib.request.urlretrieve(ddd,fff)
+        
+        
+        # f_download(url_prod+'metadata.xml',main+'/'+edit_name(i_name, 'MTD','SAFL1C')+'.xml')
+        # f_download(url_prod+'inspire.xml',main+'/INSPIRE.xml')
+        # f_download(url_prod+'manifest.safe',main+'/manifest.safe')
+        # f_download(url_prod+'preview.png',main+'/'+edit_name(i_name, 'BWI')+'.png')
+        
+        
+        # sf = get_safe_format(tile=(tileID, ts.strftime('%Y-%m-%d')), entire_product=False)
+        # print(sf.keys())
     else:
         print("Incompatible Begin Position Date")
 
-print("All downloads completed.")
+#print("All downloads completed.")
 
 
 #====================================================================================================
 # Process the images: L1C -> L2A
 #====================================================================================================
 
-print("Starting Sen2Cor processing.")
+#print("Starting Sen2Cor processing.")
 
 

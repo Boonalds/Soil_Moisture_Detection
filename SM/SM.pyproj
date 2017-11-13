@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9c56b83a-35c9-4a92-8426-7e6db73fb23a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Data_Collection.py</StartupFile>
+    <StartupFile>Testing.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>C:\Users\r.maas\Source\Repos\Soil_Moisture_Detection\</WorkingDirectory>
@@ -22,8 +22,7 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Data_Colection2.py" />
-    <Compile Include="Data_Collection.py" />
+    <Compile Include="Data_Colection_theia.py" />
     <Compile Include="Data_Processing.py">
       <SubType>Code</SubType>
     </Compile>

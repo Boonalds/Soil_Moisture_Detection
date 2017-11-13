@@ -46,8 +46,7 @@ write_dir="C:/S2_Download"  # Map where all images are downloaded to
 
 
 #============================================================================================================================================
-# Get a token to be allowed to bypass the authentification. The token is only valid for two hours. If your connection is slow
-# or if you are downloading lots of products, it might be an issue
+# Get a token to be allowed to bypass the authentification. 
 #============================================================================================================================================
 
 # Construct token query and request it using curl
