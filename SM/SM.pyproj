@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9c56b83a-35c9-4a92-8426-7e6db73fb23a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Testing.py</StartupFile>
+    <StartupFile>Data_Processing.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>C:\Users\r.maas\Source\Repos\Soil_Moisture_Detection\</WorkingDirectory>
@@ -24,10 +24,6 @@
   <ItemGroup>
     <Compile Include="Data_Colection_theia.py" />
     <Compile Include="Data_Processing.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Sentinel_download.py" />
-    <Compile Include="Testing.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Validation.py" />

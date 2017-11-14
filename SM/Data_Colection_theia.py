@@ -14,10 +14,10 @@ Script to download sentinel-2 Level-2A products from the theia website.
 #====================================================================================================
 # Import libraries and modules
 #====================================================================================================
-import json
 import time
 import os, os.path, optparse,sys
 from datetime import date
+import json
 import requests
 import urllib
 
@@ -40,7 +40,7 @@ tile='T31UFT'
 start_date="2016-04-05"
 end_date='2016-05-05'
 s_platform="SENTINEL2A"     # SENTINEL2B
-maxcloud=101                # Maximum cloudcover allowed, in percentages
+maxcloud=40                # Maximum cloudcover allowed, in percentages
 
 write_dir="C:/S2_Download"  # Map where all images are downloaded to
 
@@ -137,10 +137,10 @@ for i in range(len(data["features"])):
                     pass
 
             os.rename("%s" % (tmpfile),"%s/%s.zip" % (write_dir,prod))
-            print("Product saved as : %s/%s.zip") % (write_dir,prod)
+            print("Product saved as : %s/%s.zip" % (write_dir,prod))
         else :
-            print("Cloud cover too high : %s") % (cloudCover) 
+            print("Cloud cover too high : %s" % (cloudCover)) 
     elif file_exists:
-        print("%s already exists") % (prod)
+        print("%s already exists" % (prod))
 
 
