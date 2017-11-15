@@ -9,6 +9,9 @@ import numpy as np
 import csv
 import os 
 
+# Input parameters
+sf = 0.1 # Spacing factor, how much space should there be outside the bounding box; sf * difference min and max x (and y)
+
 ### Initialization
 label_names = []
 Val_SM_05cm = []
@@ -40,8 +43,6 @@ del val_loc_data[0]
 [val_x, val_y] = [[float(r[1].replace(',', '.')) for r in val_loc_data], [float(r[2].replace(',', '.')) for r in val_loc_data]]
 
 # Calculate x and y coordinates for a bounding box around the validation data and store as a .geojson file
-sf = 0 # Spacing factor, how much space should there be outside the bounding box; sf * difference min and max x (and y)
-
 [x_min, x_max] = [min(val_x)-sf*(max(val_x)-min(val_x)),max(val_x)+sf*(max(val_x)-min(val_x))]
 [y_min, y_max] = [min(val_y)-sf*(max(val_y)-min(val_y)),max(val_y)+sf*(max(val_y)-min(val_y))]
 

@@ -26,6 +26,14 @@ import urllib
 #====================================================================================================
 # Define variables
 #====================================================================================================
+# Download data information
+tile='T31UFT'
+start_date="2016-04-05"
+end_date='2016-05-05'
+s_platform="SENTINEL2A"     # SENTINEL2B
+maxcloud=101                # Maximum cloudcover allowed, in percentages
+
+# Theia download information
 server = "https://theia.cnes.fr/atdistrib"
 token_ext = '/services/authenticate/>token.json'
 
@@ -36,12 +44,7 @@ token_type = "text"
 login_theia = "robmaas77@hotmail.com"
 password_theia = "abc123ZYX(*&"
 
-tile='T31UFT'
-start_date="2016-04-05"
-end_date='2016-05-05'
-s_platform="SENTINEL2A"     # SENTINEL2B
-maxcloud=40                # Maximum cloudcover allowed, in percentages
-
+# Directory allocation
 write_dir="C:/S2_Download"  # Map where all images are downloaded to
 
 
