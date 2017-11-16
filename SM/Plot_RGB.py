@@ -1,10 +1,7 @@
 
-import shutil
 
-shutil.rmtree('C:/S2_Download/tttest')
+import zipfile 
 
-
-#import zipfile
 
 ## VARS
 #prod='SENTINEL2A_20160428-104500-651_L2A_T31UFT_D'

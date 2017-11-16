@@ -35,6 +35,7 @@ import numpy as np
 import json
 import shutil
 import geojson
+import zipfile
 import time
 from datetime import date
 import requests
@@ -79,9 +80,9 @@ login_theia = "robmaas77@hotmail.com"
 password_theia = "abc123ZYX(*&"
 
 # Directory and file allocations
-write_dir="C:/S2_Download/"  # Map where all images are downloaded to
-out_dir='C:/S2_Download/Processed/' # Map where cropped geotiff is stored to
-out_dir_raw="C:/S2_Download/raw/"
+write_dir="D:/S2_Download/"  # Map where all images are downloaded to
+out_dir=write_dir+'Processed/' # Map where cropped geotiff is stored to
+out_dir_raw=write_dir+"Raw/"
 prod='SENTINEL2A_20160428-104500-651_L2A_T31UFT_D' # SENTINEL2A_20160411-105025-461_L2A_T31UFT_D
 valArea = './Data/Validation/Raam/Validation_area_Raam.json'    # Geojson file that defines validation area
 
@@ -209,21 +210,28 @@ for i in range(len(data["features"])):
     get_product='curl %s -o %s -k -H "Authorization: Bearer %s" %s/%s/collections/%s/%s/download/?issuerId=theia' % (curl_proxy, tmpfile, token, server, resto, collection, feature_id)
 
     if not(file_exists):
-        # Download only if cloudCover below maxcloud
-        if cloudCover <= maxcloud:
-            os.system(get_product)
-            # Check if binary product
-            with open(tmpfile) as f_tmp:
-                try:
-                    tmp_data=json.load(f_tmp)
-                    print("Result is a text file")
-                    print(tmp_data)
-                    sys.exit(-1)
-                except ValueError:
-                    pass
+        if cloudCover <= maxcloud: # Download only if cloudCover below maxcloud
+            # Check if file is already downloaded, but not yet processed:
+            zip_exists=os.path.exists("%s%s.zip" % (write_dir, prod))
+            
+            if not(zip_exists):
 
-            os.rename("%s" % (tmpfile),"%s%s.zip" % (write_dir,prod))
-            print("Product saved as : %s%s.zip" % (write_dir,prod))
+                os.system(get_product)
+                # Check if binary product
+                with open(tmpfile) as f_tmp:
+                    try:
+                        tmp_data=json.load(f_tmp)
+                        print("Result is a text file")
+                        print(tmp_data)
+                        sys.exit(-1)
+                    except ValueError:
+                        pass
+
+                os.rename("%s" % (tmpfile),"%s%s.zip" % (write_dir,prod))
+                print("Product saved as : %s%s.zip" % (write_dir,prod))
+            else:
+                print("%s already downloaded, but not yet processed, started processing:" % (prod))
+
             #==============================================
             # 4. Unzipping
             #==============================================
@@ -315,6 +323,6 @@ for i in range(len(data["features"])):
         else:
             print("Cloud cover too high : %s" % (cloudCover)) 
     elif file_exists:
-        print("%s already exists" % (prod))
+        print("%s already downloaded and processed" % (prod))
 
 
