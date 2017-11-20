@@ -21,7 +21,9 @@ Based on the search parameter, this script will:
 
 
 ### TO DO
-- automatically create folders if not exist
+# - Automatically create folders if not exist
+# - Masking water bodies
+# - 
 """
 
 

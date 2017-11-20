@@ -29,9 +29,9 @@ import urllib
 # Download data information
 tile='T31UFT'
 start_date="2016-04-05"
-end_date='2016-05-05'
+end_date='2016-06-05'
 s_platform="SENTINEL2A"     # SENTINEL2B
-maxcloud=101                # Maximum cloudcover allowed, in percentages
+maxcloud=20                # Maximum cloudcover allowed, in percentages
 
 # Theia download information
 server = "https://theia.cnes.fr/atdistrib"
@@ -130,14 +130,14 @@ for i in range(len(data["features"])):
         if cloudCover <= maxcloud:
             os.system(get_product)
             # Check if binary product
-            with open(tmpfile) as f_tmp:
-                try:
-                    tmp_data=json.load(f_tmp)
-                    print("Result is a text file")
-                    print(tmp_data)
-                    sys.exit(-1)
-                except ValueError:
-                    pass
+            #with open(tmpfile) as f_tmp:
+            #    try:
+            #        tmp_data=json.load(f_tmp)
+            #        print("Result is a text file")
+            #        print(tmp_data)
+            #        sys.exit(-1)
+            #    except ValueError:
+            #        pass
 
             os.rename("%s" % (tmpfile),"%s/%s.zip" % (write_dir,prod))
             print("Product saved as : %s/%s.zip" % (write_dir,prod))

@@ -21,8 +21,8 @@ from pyproj import Proj
 write_dir="C:/S2_Download/"  # Map where all images are downloaded to
 out_dir='C:/S2_Download/Processed/' # Map where cropped geotiff is stored to
 out_dir_raw="C:/S2_Download/raw/"
-prod='SENTINEL2A_20160428-104500-651_L2A_T31UFT_D' # SENTINEL2A_20160411-105025-461_L2A_T31UFT_D
-valArea = './Data/Validation/Raam/Validation_area_Raam.json'    # Geojson file that defines validation area
+prod='SENTINEL2A_20160411-105025-461_L2A_T31UFT_D' # SENTINEL2A_20160411-105025-461_L2A_T31UFT_D
+valArea = 'C:/Users/r.maas/Source/Repos/Soil_Moisture_Detection/Data/Validation/Raam/Validation_area_Raam.json'    # Geojson file that defines validation area
 
 # Other lists
 BANDS = ['SRE_B2', 'SRE_B3', 'SRE_B4']    # Requires a band with lowest resolution first (10m)
