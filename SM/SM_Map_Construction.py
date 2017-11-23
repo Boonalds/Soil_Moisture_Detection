@@ -79,7 +79,7 @@ for i in range(len(img_list)):
                         "dtype":rasterio.float64})
 
         # Store as new GeoTIFF
-        out_fn="SM_"+img_list[i][11:19]+".tif"      # Define filename
+        out_fn="SM_"+img_list[i][11:26]+".tif"      # Define filename
         with rasterio.open(SM_outdir+out_fn, "w",**out_meta) as dest:
             dest.write_band(1,SM_tmp)
 
