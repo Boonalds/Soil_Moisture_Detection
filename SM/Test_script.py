@@ -1,90 +1,53 @@
-'''
-This script is pure for testing purposes and will be excluded from the end product.
-'''
 
-"""
-Script to download the required Sentinel-2 data, longer description later.
-"""
 
-### Import libraries
-import matplotlib.pyplot as plt
-import geojson
 import numpy as np
+from datetime import datetime, date, time
 import csv
-import os 
+import os
+import fnmatch
 
-# Input parameters
-sf = 0.1 # Spacing factor, how much space should there be outside the bounding box; sf * difference min and max x (and y)
-
-### Initialization
-label_names = []
-Val_SM_05cm = []
-Val_SM_10cm = []
-
-### Directory containing validation files
-ValDir = './Data/Validation/Raam/'
-ValDataDir = './Data/Validation/Raam/data/station_data/'
-valLocData = './Data/Validation/Raam/data/metadata/Raam_station_locations_WGS84.csv'      # Locations of validation data points
-
-### Read Validation data and store SM and location data and headings in different arrays
-for file in os.listdir(ValDataDir):
-    label_names = label_names + ["Field "+file[6:8]]
-    with open(os.path.join(ValDataDir, file), newline='') as csvfile:
-        r = csv.reader(csvfile, delimiter=',', quotechar='|')
-        data = [i for i in r]
-        del data[0]
-        Val_SM_05cm = Val_SM_05cm + [np.array([np.float(i[1]) for i in data])]
-        Val_SM_10cm = Val_SM_10cm + [np.array([np.float(i[3]) for i in data])]
+# Directory containing validation files
+ValDir = 'C:/Users/r.maas/Source/Repos/Soil_Moisture_Detection/Data/Validation/Raam/'
+ValDataDir = ValDir+ "data/station_data/"
+valLocData = ValDir+ "data/metadata/Raam_station_locations_WGS84.csv"      # Locations of validation data points
+img_dir = "C:/S2_Download/SM_Maps/"
 
 
 
 
-with open(valLocData, newline='') as csvfile:
-    r = csv.reader(csvfile, delimiter=';', quotechar='|')
-    val_loc_data = [i for i in r]
+def round2quarter(input_fn):
+    """ Extract acquisition time from img filename, rounds the time to quarters and transforms to datetime class as output."""
+    ts_tmp = img[-19:-4]                        
+    if 0 <= int(ts_tmp[-4:]) < 730 or 5230 <= int(ts_tmp[-4:]) <= 5959:
+        ts_rounded = ts_tmp[:-4]+'0000'
+    elif 730 <= int(ts_tmp[-4:]) < 2230:
+        ts_rounded = ts_tmp[:-4]+'1500'
+    elif 2230 <= int(ts_tmp[-4:]) < 3730:
+        ts_rounded = ts_tmp[:-4]+'3000'
+    elif 3730 <= int(ts_tmp[-4:]) < 5230:
+        ts_rounded = ts_tmp[:-4]+'4500'
+    else:
+        print("Unrecognized timeformat: "+ ts_tmp[-4:-2]+"m/"+ts_tmp[-2:]+"s.")
+        sys.exit(-1)
 
-del val_loc_data[0]
-[val_x, val_y] = [[float(r[1].replace(',', '.')) for r in val_loc_data], [float(r[2].replace(',', '.')) for r in val_loc_data]]
-
-# Calculate x and y coordinates for a bounding box around the validation data and store as a .geojson file
-[x_min, x_max] = [min(val_x)-sf*(max(val_x)-min(val_x)),max(val_x)+sf*(max(val_x)-min(val_x))]
-[y_min, y_max] = [min(val_y)-sf*(max(val_y)-min(val_y)),max(val_y)+sf*(max(val_y)-min(val_y))]
-
-#footprint = "POLYGON((" + str(x_min) + " " + str(y_min) + "," + str(x_max) + " " + str(y_min) + "," + str(x_max) + " " + str(y_max) + "," + str(x_min) + " " + str(y_max) + "," + str(x_min) + " " + str(y_min) + "))"
-footprint = [{'type': 'Polygon', 'coordinates': [[(x_min, y_min), (x_max, y_min), (x_max, y_max), (x_min, y_max), (x_min, y_min)]]}]
-
-with open(ValDir+'Validation_area_Raam.json', 'w') as fp:
-    geojson.dump(footprint, fp)
+    dt_obj = datetime.strptime(ts_rounded, "%Y%m%d-%H%M%S")
+    dt = datetime.strftime(dt_obj, "%d-%b-%y %H:%M:%S")
+    return dt
 
 
+img_list = []
+SM_acq_dt = []
 
-### Soil Moisture Signals
-
-plot_enable = False;
-
-if plot_enable == True:
-    plt.figure(1)
-    
-    # 5cm depth
-    ax1 = plt.subplot(211)
-    for k in range(len(Val_SM_05cm)):
-        ax1.plot(Val_SM_05cm[k], label=label_names[k])
-    ax1.legend()
-    plt.title('5 cm depth')
-    # 10cm depth
-    ax2 = plt.subplot(212)
-    for k in range(len(Val_SM_10cm)):
-        ax2.plot(Val_SM_10cm[k], label=label_names[k])
-    ax2.legend()
-    plt.title('10 cm depth')
-
-    plt.show()
+# Make a list of all soil moisture maps.
+for file in os.listdir(img_dir):
+    if fnmatch.fnmatch(file, 'SM_201?????-??????.tif'):
+        img_list.append(img_dir+file)
 
 
 
+for i in range(len(img_list)):
+    img = img_list[i]
+    SM_acq_dt.append(round2quarter(img))        # Store acquisition dates, rounded to quarters
 
-### Doc
-# Original headers
-# Measurement Time,5 cm VWC [m3/m3],5 cm Temp [oC],10 cm VWC [m3/m3],
-#        10 cm Temp [oC],20 cm VWC [m3/m3],20 cm Temp [oC],40 cm VWC [m3/m3],
-#        40 cm Temp [oC],80 cm VWC [m3/m3],80 cm Temp [oC]
+
+print(SM_acq_dt)

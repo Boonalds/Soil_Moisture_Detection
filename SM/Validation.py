@@ -19,14 +19,14 @@ downloading and processing the correct imagery). The validation data that is use
 import matplotlib.pyplot as plt
 import geojson
 import numpy as np
-import datetime
+from datetime import datetime, date, time
 import csv
 import os
 import fnmatch
 from osgeo import gdal
 import pyproj
 from pyproj import Proj
-
+import pandas as pd
 
 
 #====================================================================================================
@@ -43,42 +43,49 @@ ValDataDir = ValDir+ "data/station_data/"
 valLocData = ValDir+ "data/metadata/Raam_station_locations_WGS84.csv"      # Locations of validation data points
 img_dir = "C:/S2_Download/SM_Maps/"
 
+
+#====================================================================================================
+# Defining functions that are to be used in this script
+#====================================================================================================
+
+def round2quarter(input_fn):
+    """ Extract acquisition time from img filename, rounds the time to quarters and transforms to datetime class as output."""
+    ts_tmp = img[-19:-4]                        
+    if 0 <= int(ts_tmp[-4:]) < 730 or 5230 <= int(ts_tmp[-4:]) <= 5959:
+        ts_rounded = ts_tmp[:-4]+'0000'
+    elif 730 <= int(ts_tmp[-4:]) < 2230:
+        ts_rounded = ts_tmp[:-4]+'1500'
+    elif 2230 <= int(ts_tmp[-4:]) < 3730:
+        ts_rounded = ts_tmp[:-4]+'3000'
+    elif 3730 <= int(ts_tmp[-4:]) < 5230:
+        ts_rounded = ts_tmp[:-4]+'4500'
+    else:
+        print("Unrecognized timeformat: "+ ts_tmp[-4:-2]+"m/"+ts_tmp[-2:]+"s.")
+        sys.exit(-1)
+
+    dt_obj = datetime.strptime(ts_rounded, "%Y%m%d-%H%M%S")
+    dt = datetime.strftime(dt_obj, "%d-%b-%y %H:%M:%S")
+    return dt
+
 #====================================================================================================
 # Initialization
 #====================================================================================================
 label_names = []
-Val_SM_05cm = []
-Val_SM_10cm = []
 img_list = []
-SM_Est_ts = []
+SM_acq_dt = []
 
-# Make a list of all soil moisture maps.
+
+
+# Make a list of all soil moisture maps and validation files
 for file in os.listdir(img_dir):
     if fnmatch.fnmatch(file, 'SM_201?????-??????.tif'):
         img_list.append(img_dir+file)
 
-#====================================================================================================
-# Read in SM Measurements from validation data
-#====================================================================================================
-# Read in SM validation data
-for file in os.listdir(ValDataDir):
-    label_names = label_names + ["Field "+file[6:8]]
-    with open(os.path.join(ValDataDir, file), newline='') as csvfile:
-        r = csv.reader(csvfile, delimiter=',', quotechar='|')
-        data = [i for i in r]
-        del data[0]
-        Val_SM_05cm = Val_SM_05cm + [np.array([np.float(i[1]) for i in data])]
-        Val_SM_10cm = Val_SM_10cm + [np.array([np.float(i[3]) for i in data])]
+val_list = os.listdir(ValDataDir)
 
-# Read in validation timestamps (ts) from the first csv
-csv_ts = os.listdir(ValDataDir)[0]
-with open(os.path.join(ValDataDir, csv_ts), newline='') as csvfile:
-    r = csv.reader(csvfile, delimiter=',', quotechar='|')
-    data = [i for i in r]
-    del data[0]
-    Val_ts = [i[0] for i in data]
-
-# Read in locations of the validation data and reproject to UTM 31 
+#====================================================================================================
+# Read in SM validation locations from metadata
+#====================================================================================================
 with open(valLocData, newline='') as csvfile:
     r = csv.reader(csvfile, delimiter=';', quotechar='|')
     val_loc_data = [i for i in r]
@@ -87,6 +94,7 @@ with open(valLocData, newline='') as csvfile:
     val_x = [i[0] for i in val_locs]
     val_y = [i[1] for i in val_locs]
 
+# reproject to UTM 31 
 wgs84 = Proj(init = 'epsg:4326')
 wgs84utm31 = Proj(init = 'epsg:32631')
 
@@ -94,8 +102,6 @@ for coordPair in val_locs:
     x = coordPair[0]
     y = coordPair[1]
     coordPair[0],coordPair[1] = pyproj.transform(wgs84,wgs84utm31,x, y)
-
-
 
 #====================================================================================================
 # Read in SM Estimates from maps
@@ -105,34 +111,41 @@ SM_est = np.empty([len(img_list), len(val_locs)])
 # Read in every image 1 by 1, and extract estimated SM value at each validation location and its acquisition date
 for i in range(len(img_list)):
     img = img_list[i]
-    SM_Est_ts.append(img[-19:-4])   # Copy aquisition date for later use
-    gdata = gdal.Open(img)          # Open image
-    data = gdata.ReadAsArray().astype(np.float)
-    gt = gdata.GetGeoTransform()    # Extract transform to reproject to map pixels
+    SM_acq_dt.append(round2quarter(img))        # Store acquisition dates, rounded to quarters
+
+    gdata = gdal.Open(img)                      # Open image
+    data = gdata.ReadAsArray().astype(np.float) # Read data as float
+    gt = gdata.GetGeoTransform()                # Extract transform to reproject to map pixels
     gdata = None
-    
+    # print(img)
     for j in range(len(val_locs)):
         x = int((val_locs[j][0] - gt[0])/gt[1])
         y = int((val_locs[j][1] - gt[3])/gt[5])
-        print("Point "+str(j)+"; x: "+str(x)+ "     y: "+str(y))
+        # print("Point "+str(j)+"; x: "+str(x)+ "     y: "+str(y) + ". SM Value: " + str(data[y,x]))
         SM_est[i,j] = data[y,x]
 
 
+#====================================================================================================
+# Load in the SM validation data and extract the values that correspond the acquisition date
+#====================================================================================================
+SM_meas = np.empty(shape=np.shape(SM_est))
 
+for i in range(len(val_list)):
+    file = val_list[i]
+    with open(os.path.join(ValDataDir, file), newline='') as csvfile:
+        r = csv.reader(csvfile, delimiter=',', quotechar='|')
+        next(r)
+        j = 0
+        for row in r:
+            if row[0] in SM_acq_dt:
+                SM_meas[j,i] = row[1]
+                j+=1
+
+
+# 
 
 #====================================================================================================
-# Filter for the correct dates/times in the validation data
-#====================================================================================================
-# Transform acq dates
-
-# Round to nearest quarter hour
-#df['<column>'] = df['<column>'].apply(lambda dt: datetime.datetime(dt.year, dt.month, dt.day, dt.hour,15*round((float(dt.minute) + float(dt.second)/60) / 15)))
-
-
-# match
-
-#====================================================================================================
-# Transform W -> omega
+# Transform W -> omega     
 #====================================================================================================
 
 
