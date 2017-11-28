@@ -27,6 +27,7 @@ from osgeo import gdal
 import pyproj
 from pyproj import Proj
 import pandas as pd
+from scipy import stats
 
 
 #====================================================================================================
@@ -36,6 +37,8 @@ import pandas as pd
 sf = 0.1                        # Spacing factor, how much space should there be outside the bounding box; sf * difference min and max x (and y)
 plot_sm_measurements = False    # Define whether the validation values should be plotted.
 create_geojson = False          # Define whether a new GeoJSON should be created.
+PRINT_VAL_OVERVIEW = False      # Print overview of raw validation measurements
+Max_Content = 0.5               # Max expected water content [m3/m3], used for plotting
 
 # Directory containing validation files
 ValDir = 'C:/Users/r.maas/Source/Repos/Soil_Moisture_Detection/Data/Validation/Raam/'
@@ -67,6 +70,8 @@ def round2quarter(input_fn):
     dt = datetime.strftime(dt_obj, "%d-%b-%y %H:%M:%S")
     return dt
 
+
+        
 #====================================================================================================
 # Initialization
 #====================================================================================================
@@ -128,36 +133,190 @@ for i in range(len(img_list)):
 #====================================================================================================
 # Load in the SM validation data and extract the values that correspond the acquisition date
 #====================================================================================================
-SM_meas = np.empty(shape=np.shape(SM_est))
+SM_meas5 = np.empty(shape=np.shape(SM_est))
+SM_meas10 = np.empty(shape=np.shape(SM_est))
+SM_meas20 = np.empty(shape=np.shape(SM_est))
+SM_meas40 = np.empty(shape=np.shape(SM_est))
 
-for i in range(len(val_list)):
+for i in range(len(val_list)):              # i cycles over locations
     file = val_list[i]
     with open(os.path.join(ValDataDir, file), newline='') as csvfile:
         r = csv.reader(csvfile, delimiter=',', quotechar='|')
         next(r)
-        j = 0
-        for row in r:
-            if row[0] in SM_acq_dt:
-                SM_meas[j,i] = row[1]
-                j+=1
-
-
-# 
-
+        for j in range(len(SM_acq_dt)):     # j cycles over timestamps
+            for mt, sm_5, t_5, sm_10, t_10, sm_20, t_20,sm_40, t_40,sm_80,t_80 in r:
+                if mt == SM_acq_dt[j]:
+                    SM_meas5[j,i] = sm_5
+                    SM_meas10[j,i] = sm_10
+                    SM_meas20[j,i] = sm_20
+                    SM_meas40[j,i] = sm_40
+                    break
+            else:
+                SM_meas5[j,i] = np.NaN
+                SM_meas10[j,i] = np.NaN
+                SM_meas20[j,i] = np.NaN
+                SM_meas40[j,i] = np.NaN
+                csvfile.seek(0)                 # Ensures that the csv is being read from the top again
+ 
+ 
+##====================================================================================================
+# Transformation (W -> Theta)   and Statistical calculations
 #====================================================================================================
-# Transform W -> omega     
-#====================================================================================================
+# Estimated RS Water content is normalized between 0 and 1, while validation measurements are in water content (theta) in m3/m3. 
+# Using linear relation between W (estimated) and O (Theta,measured): O = a*W+b. (Full description in Sadeghi 2017)
+
+SM_est[SM_est>0.35] = np.nan
+
+f_b = np.nanmin(SM_meas5)
+f_a = (np.nanmax(SM_meas5)-np.nanmin(SM_meas5))/(np.nanmax(SM_est)-np.nanmin(SM_est))
+
+SM_est_O = (f_a*SM_est)+f_b
+
+### Stats
 
 
-
+#slope, intercept, r_value, p_value, std_err = stats.linregress(SM_meas5,SM_est)
+#
 
 #====================================================================================================
 # Plot QQ plots and print validation results
 #====================================================================================================
-# Print RMSE, R^2 etc
+
+#### All validation data grouped (plot at different depths)
+## Set up lists for loop
+#sp_ds = [SM_meas5, SM_meas10, SM_meas20, SM_meas40]
+#sp_t = ["All sites - 5cm depth", "All sites - 10cm depth", "All sites - 20cm depth", "All sites - 40cm depth"]
+
+#plt.figure(1, figsize=(10,10))
+
+#for i in range(len(sp_ds)):
+#    ax = plt.subplot(2,2,i+1)
+
+#    # Plots
+#    ax.plot((0,1), 'k', label='1:1')
+#    ax.scatter(sp_ds[i],SM_est_O)
+
+#    # Add statistics
+#    #ax.text(0.95, 0.01, str(rmse(SM_est,sp_ds[i])),
+#    #    verticalalignment='bottom', horizontalalignment='right',
+#    #    transform=ax.transAxes,
+#    #    color='green', fontsize=15)
+
+#    # add labels, legend and make it nicer
+#    ax.set_xlabel("Measured "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
+#    ax.set_ylabel("Estimated "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
+#    ax.set_title(sp_t[i], y=.93)
+#    ax.set_xlim(0, Max_Content)
+#    ax.set_ylim(0, Max_Content)
+#    ax.legend()
 
 
 
+#plt.tight_layout()
+#plt.show()
+
+#### Plot per validation location  (3x3)
+# Set up lists for loop
+sp_ds = SM_meas5
+
+# First figure
+plt.figure(1, figsize=(10,10))
+
+for i in range(0,9):
+    ax = plt.subplot(3,3,i+1)
+
+    # Plots
+    ax.plot((0,1), 'k', label='1:1')
+    ax.scatter(sp_ds[:,i],SM_est_O[:,i])
+
+    # Add statistics
+    #ax.text(0.95, 0.01, str(rmse(SM_est,sp_ds[i])),
+    #    verticalalignment='bottom', horizontalalignment='right',
+    #    transform=ax.transAxes,
+    #    color='green', fontsize=15)
+
+    # add labels, legend and make it nicer
+    ax.set_xlabel("Measured "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
+    ax.set_ylabel("Estimated "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
+    ax.set_title("Site "+ str(i+1), y=.9)
+    ax.set_xlim(0, Max_Content)
+    ax.set_ylim(0, Max_Content)
+    ax.legend()
+
+
+
+plt.figure(2, figsize=(10,10))
+
+for i in range(9,15):
+    ax = plt.subplot(3,3,i+1-9)
+
+    # Plots
+    ax.plot((0,1), 'k', label='1:1')
+    ax.scatter(sp_ds[:,i],SM_est_O[:,i])
+
+    # Add statistics
+    #ax.text(0.95, 0.01, str(rmse(SM_est,sp_ds[i])),
+    #    verticalalignment='bottom', horizontalalignment='right',
+    #    transform=ax.transAxes,
+    #    color='green', fontsize=15)
+
+    # add labels, legend and make it nicer
+    ax.set_xlabel("Measured "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
+    ax.set_ylabel("Estimated "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
+    ax.set_title("Site "+ str(i+1), y=.9)
+    ax.set_xlim(0, Max_Content)
+    ax.set_ylim(0, Max_Content)
+    ax.legend()
+
+
+
+plt.tight_layout()
+plt.show()
+
+
+
+#### Plot histograms
+#plt.figure(2)
+
+#plt.subplot(121)    
+#plt.hist(SM_est.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
+#plt.title('Histogram of Estimated SM')
+
+#plt.subplot(122)
+#plt.hist(SM_meas5.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
+#plt.title('Histogram of Measured SM')
+
+
+
+
+
+
+
+
+
+
+
+
+
+#====================================================================================================
+# Print validation Overview
+#====================================================================================================
+if PRINT_VAL_OVERVIEW == True:
+    print("Dates used: ")
+    print(SM_acq_dt)
+
+
+    print("MEASURED-----------------")
+    print("min: " + str(np.nanmin(SM_meas)))
+    print("max: " + str(np.nanmax(SM_meas)))
+    print("ESTIMATED----------------")
+    print("min: " + str(np.nanmin(SM_est)))
+    print("max: " + str(np.nanmax(SM_est)))
+
+
+    for i in range(np.shape(SM_meas)[1]):
+        print(val_list[i])
+        print(SM_meas[:,i])
 
 #====================================================================================================
 # Create GeoJSON
@@ -171,7 +330,6 @@ if create_geojson == True:
 
     with open(ValDir+'Validation_area_Raam.json', 'w') as fp:
         geojson.dump(footprint, fp)
-
 
 #====================================================================================================
 # Plots
