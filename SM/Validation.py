@@ -21,13 +21,12 @@ import geojson
 import numpy as np
 from datetime import datetime, date, time
 import csv
-import os
+import os, os.path, optparse,sys
 import fnmatch
 from osgeo import gdal
 import pyproj
 from pyproj import Proj
 import pandas as pd
-from scipy import stats
 
 
 #====================================================================================================
@@ -71,15 +70,54 @@ def round2quarter(input_fn):
     return dt
 
 
-        
-#====================================================================================================
+def calc_rmse(trueVal, predVal):
+    """Function that calculates the Root Mean Square Error, which is an indicator for the prediction error"""
+    if len(trueVal) == len(predVal):
+        if np.nansum(trueVal) > 0:
+            RMSE = (np.nanmean((np.array(trueVal) - np.array(predVal))**2))**0.5
+        else:
+            return np.NaN
+    else:
+        print("ERROR: number of predicted and measured values must be equal; \n       n(predicted):"+str(len(predVal))+"\n       n(measured):"+str(len(trueVal)))
+        sys.exit(-1)
+    return RMSE
+   
+
+
+def calc_r2(trueVal,predVal):
+    """Function that calculates the R^2 value, indicating the proportion of the variation that is explained by the predicted values"""
+    if len(trueVal) == len(predVal):
+        if np.nansum(trueVal) > 0:
+            SSR = np.nansum((np.array(trueVal) - np.array(predVal))**2)
+            SST = np.nansum(np.array(trueVal)**2)
+            r2 = 1-(SSR/SST)
+        else:
+            return np.NaN
+    else:
+        print("ERROR: number of predicted and measured values must be equal; \n       n(predicted):"+str(len(predVal))+"\n       n(measured):"+str(len(trueVal)))
+        sys.exit(-1)
+    return r2
+
+
+def calc_mae(trueVal, predVal):
+    """Function that calculates the Mean Absolute Error, which is an indicator for the prediction error"""
+    if len(trueVal) == len(predVal):
+        if np.nansum(trueVal) > 0:
+            MAE = np.nanmean(abs(np.array(trueVal) - np.array(predVal)))
+        else:
+            return np.NaN
+    else:
+        print("ERROR: number of predicted and measured values must be equal; \n       n(predicted):"+str(len(predVal))+"\n       n(measured):"+str(len(trueVal)))
+        sys.exit(-1)
+    return MAE
+
+
+#====================================================================================================   - np.nanmean(trueVal)
 # Initialization
 #====================================================================================================
 label_names = []
 img_list = []
 SM_acq_dt = []
-
-
 
 # Make a list of all soil moisture maps and validation files
 for file in os.listdir(img_dir):
@@ -164,19 +202,11 @@ for i in range(len(val_list)):              # i cycles over locations
 #====================================================================================================
 # Estimated RS Water content is normalized between 0 and 1, while validation measurements are in water content (theta) in m3/m3. 
 # Using linear relation between W (estimated) and O (Theta,measured): O = a*W+b. (Full description in Sadeghi 2017)
-
 SM_est[SM_est>0.35] = np.nan
-
 f_b = np.nanmin(SM_meas5)
 f_a = (np.nanmax(SM_meas5)-np.nanmin(SM_meas5))/(np.nanmax(SM_est)-np.nanmin(SM_est))
-
 SM_est_O = (f_a*SM_est)+f_b
 
-### Stats
-
-
-#slope, intercept, r_value, p_value, std_err = stats.linregress(SM_meas5,SM_est)
-#
 
 #====================================================================================================
 # Plot QQ plots and print validation results
@@ -184,81 +214,53 @@ SM_est_O = (f_a*SM_est)+f_b
 
 #### All validation data grouped (plot at different depths)
 ## Set up lists for loop
-#sp_ds = [SM_meas5, SM_meas10, SM_meas20, SM_meas40]
-#sp_t = ["All sites - 5cm depth", "All sites - 10cm depth", "All sites - 20cm depth", "All sites - 40cm depth"]
+sp_ds = [SM_meas5, SM_meas10, SM_meas20, SM_meas40]
+sp_t = ["All sites - 5cm depth", "All sites - 10cm depth", "All sites - 20cm depth", "All sites - 40cm depth"]
 
-#plt.figure(1, figsize=(10,10))
-
-#for i in range(len(sp_ds)):
-#    ax = plt.subplot(2,2,i+1)
-
-#    # Plots
-#    ax.plot((0,1), 'k', label='1:1')
-#    ax.scatter(sp_ds[i],SM_est_O)
-
-#    # Add statistics
-#    #ax.text(0.95, 0.01, str(rmse(SM_est,sp_ds[i])),
-#    #    verticalalignment='bottom', horizontalalignment='right',
-#    #    transform=ax.transAxes,
-#    #    color='green', fontsize=15)
-
-#    # add labels, legend and make it nicer
-#    ax.set_xlabel("Measured "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
-#    ax.set_ylabel("Estimated "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
-#    ax.set_title(sp_t[i], y=.93)
-#    ax.set_xlim(0, Max_Content)
-#    ax.set_ylim(0, Max_Content)
-#    ax.legend()
-
-
-
-#plt.tight_layout()
-#plt.show()
-
-#### Plot per validation location  (3x3)
-# Set up lists for loop
-sp_ds = SM_meas5
-
-# First figure
 plt.figure(1, figsize=(10,10))
 
-for i in range(0,9):
-    ax = plt.subplot(3,3,i+1)
+for i in range(len(sp_ds)):
+    ax = plt.subplot(2,2,i+1)
 
     # Plots
     ax.plot((0,1), 'k', label='1:1')
-    ax.scatter(sp_ds[:,i],SM_est_O[:,i])
+    ax.scatter(sp_ds[i],SM_est_O)
 
     # Add statistics
-    #ax.text(0.95, 0.01, str(rmse(SM_est,sp_ds[i])),
-    #    verticalalignment='bottom', horizontalalignment='right',
-    #    transform=ax.transAxes,
-    #    color='green', fontsize=15)
+    ax.text(0.99, 0.01, "$R^2$: %.2f \n MAE: %.2f \n RMSE: %.2f" % (round(calc_r2(sp_ds[i],SM_est),2),round(calc_mae(sp_ds[i],SM_est),2),round(calc_rmse(sp_ds[i],SM_est),2)),
+        verticalalignment='bottom', horizontalalignment='right',
+        transform=ax.transAxes,
+        color='green', fontsize=12)
 
     # add labels, legend and make it nicer
     ax.set_xlabel("Measured "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
     ax.set_ylabel("Estimated "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
-    ax.set_title("Site "+ str(i+1), y=.9)
+    ax.set_title(sp_t[i], y=.93)
     ax.set_xlim(0, Max_Content)
     ax.set_ylim(0, Max_Content)
     ax.legend()
 
 
 
-plt.figure(2, figsize=(10,10))
+#### Plot per validation location 
+# Set Define which dataset tot use (whih depth)
+sp_ds = SM_meas5
 
-for i in range(9,15):
-    ax = plt.subplot(3,3,i+1-9)
+
+plt.figure(2, figsize=(15,10))
+
+for i in range(0,np.shape(sp_ds)[1]):
+    ax = plt.subplot(3,5,i+1)
 
     # Plots
     ax.plot((0,1), 'k', label='1:1')
     ax.scatter(sp_ds[:,i],SM_est_O[:,i])
 
     # Add statistics
-    #ax.text(0.95, 0.01, str(rmse(SM_est,sp_ds[i])),
-    #    verticalalignment='bottom', horizontalalignment='right',
-    #    transform=ax.transAxes,
-    #    color='green', fontsize=15)
+    ax.text(0.99, 0.01, "$R^2$: %.2f \n MAE: %.2f \n RMSE: %.2f" % (round(calc_r2(sp_ds[:,i],SM_est[:,i]),2),round(calc_mae(sp_ds[:,i],SM_est[:,i]),2),round(calc_rmse(sp_ds[:,i],SM_est[:,i]),2)),
+        verticalalignment='bottom', horizontalalignment='right',
+        transform=ax.transAxes,
+        color='green', fontsize=10)
 
     # add labels, legend and make it nicer
     ax.set_xlabel("Measured "+ r'$\theta$' + " " + r'$[m^3/m^3]$')
@@ -285,18 +287,6 @@ plt.show()
 #plt.subplot(122)
 #plt.hist(SM_meas5.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
 #plt.title('Histogram of Measured SM')
-
-
-
-
-
-
-
-
-
-
-
-
 
 #====================================================================================================
 # Print validation Overview

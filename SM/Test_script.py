@@ -1,53 +1,52 @@
-
-
 import numpy as np
-from datetime import datetime, date, time
-import csv
-import os
-import fnmatch
+import os, os.path, optparse,sys
+import scipy.stats
 
-# Directory containing validation files
-ValDir = 'C:/Users/r.maas/Source/Repos/Soil_Moisture_Detection/Data/Validation/Raam/'
-ValDataDir = ValDir+ "data/station_data/"
-valLocData = ValDir+ "data/metadata/Raam_station_locations_WGS84.csv"      # Locations of validation data points
-img_dir = "C:/S2_Download/SM_Maps/"
-
-
-
-
-def round2quarter(input_fn):
-    """ Extract acquisition time from img filename, rounds the time to quarters and transforms to datetime class as output."""
-    ts_tmp = img[-19:-4]                        
-    if 0 <= int(ts_tmp[-4:]) < 730 or 5230 <= int(ts_tmp[-4:]) <= 5959:
-        ts_rounded = ts_tmp[:-4]+'0000'
-    elif 730 <= int(ts_tmp[-4:]) < 2230:
-        ts_rounded = ts_tmp[:-4]+'1500'
-    elif 2230 <= int(ts_tmp[-4:]) < 3730:
-        ts_rounded = ts_tmp[:-4]+'3000'
-    elif 3730 <= int(ts_tmp[-4:]) < 5230:
-        ts_rounded = ts_tmp[:-4]+'4500'
+def rmse(trueVal, predVal):
+    """Function that calculates the Root Mean Square Error, which is an indicator for the prediction error"""
+    if len(trueVal) == len(predVal):
+        RMSE = (np.nanmean((np.array(trueVal) - np.array(predVal))**2))**0.5
     else:
-        print("Unrecognized timeformat: "+ ts_tmp[-4:-2]+"m/"+ts_tmp[-2:]+"s.")
+        print("ERROR: number of predicted and measured values must be equal; \n       n(predicted):"+str(len(predVal))+"\n       n(measured):"+str(len(trueVal)))
         sys.exit(-1)
-
-    dt_obj = datetime.strptime(ts_rounded, "%Y%m%d-%H%M%S")
-    dt = datetime.strftime(dt_obj, "%d-%b-%y %H:%M:%S")
-    return dt
-
-
-img_list = []
-SM_acq_dt = []
-
-# Make a list of all soil moisture maps.
-for file in os.listdir(img_dir):
-    if fnmatch.fnmatch(file, 'SM_201?????-??????.tif'):
-        img_list.append(img_dir+file)
+    return RMSE
 
 
 
-for i in range(len(img_list)):
-    img = img_list[i]
-    SM_acq_dt.append(round2quarter(img))        # Store acquisition dates, rounded to quarters
+def calc_r2(trueVal,predVal):
+    """Function that calculates the R^2 value, indicating the proportion of the variation that is explained by the predicted values"""
+    if len(trueVal) == len(predVal):
+        SSR = np.nansum((np.array(trueVal) - np.array(predVal))**2)
+        SST = np.nansum((trueVal - np.nanmean(trueVal))**2)
+        r2 = 1-(SSR/SST)
+    else:
+        print("ERROR: number of predicted and measured values must be equal; \n       n(predicted):"+str(len(predVal))+"\n       n(measured):"+str(len(trueVal)))
+        sys.exit(-1)
+    return r2
 
 
-print(SM_acq_dt)
+
+
+## Data:
+trueVal = [0.29,0.35,0.54,0.27,0.94]
+predVal= [0.31,0.33,0.51,0.27,0.97]
+
+trueVal = [[0.29,0.35,0.54,0.27,0.94],[0.13,0.56,0.76,0.87,0.54]]
+predVal = [[0.31,0.33,0.51,0.27,0.97],[0.11,0.54,0.76,0.88,0.57]]
+
+
+true_1D = [0.29,0.35,0.54,0.27,0.94]
+pred_1D= [0.31,0.33,0.51,0.27,0.97]
+
+true_2D = [[0.29,0.35,0.54,0.27,0.94],[0.13,0.56,0.76,0.87,0.54]]
+pred_2D = [[0.31,0.33,0.51,0.27,0.97],[0.11,0.54,0.76,0.88,0.77]]
+
+### Test
+#rmse1d = calc_r2(true_1D,pred_1D)
+rmse2d = calc_r2(true_2D,pred_2D)
+#print(rmse1d)
+print(rmse2d)
+
+test = rsquared(np.array(true_2D), np.array(pred_2D))
+
+print(test)
