@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>9c56b83a-35c9-4a92-8426-7e6db73fb23a</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Validation.py</StartupFile>
+    <StartupFile>SM_Map_Construction.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>C:\Python_wd</WorkingDirectory>

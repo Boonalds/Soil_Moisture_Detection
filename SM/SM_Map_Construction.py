@@ -20,24 +20,26 @@ import os, os.path, optparse,sys
 from osgeo import gdal, osr, gdalconst
 import io
 import rasterio
+import fnmatch
 import numpy as np
-import matplotlib.pyplot as plt
+
 
 
 #====================================================================================================
 # Define parameters, variables, and allocate directories
 #====================================================================================================
 # OPTRAM Parameters
-i_d=0       # initial value, dry edge
-s_d=2.5     # slope, dry edge
-i_w=4       # initial value, wet edge
-s_w=18.5    # slope, wet edge
+i_d=0       # initial value, dry edge   %0-0
+s_d=2.5     # slope, dry edge   %2.5-1.5
+i_w=4       # initial value, wet edge  %4-2
+s_w=13.5    # slope, wet edge   %18.5-12
 
 
 # Directory and file allocations
 SM_outdir='C:/S2_Download/SM_Maps/'     # Map where the created SM maps should be stored in.
 img_dir="C:/S2_Download/Processed/"     # Map where all input images are stored.
 
+## Clear sky images:
 img_list=["SENTINEL2A_20160508-104027-456_L2A_T31UFT_D.tif",
           "SENTINEL2A_20160607-104026-455_L2A_T31UFT_D.tif",
           "SENTINEL2A_20160720-105547-946_L2A_T31UFT_D.tif",
@@ -50,6 +52,13 @@ img_list=["SENTINEL2A_20160508-104027-456_L2A_T31UFT_D.tif",
           "SENTINEL2A_20170126-105612-238_L2A_T31UFT_D.tif",
           "SENTINEL2A_20170215-105607-471_L2A_T31UFT_D.tif",
           "SENTINEL2A_20170327-105021-460_L2A_T31UFT_D.tif"]
+
+## With masked out clouds (all images):
+#img_list = []
+#for file in os.listdir(img_dir):
+#    if fnmatch.fnmatch(file, 'SENTINEL2A_201?????-??????-???_L2A_T31UFT_D.tif'):
+#        img_list.append(file)
+
 
 for i in range(len(img_list)):
     img=img_dir+img_list[i]

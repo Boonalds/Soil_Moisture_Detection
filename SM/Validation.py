@@ -112,7 +112,7 @@ def calc_mae(trueVal, predVal):
     return MAE
 
 
-#====================================================================================================   - np.nanmean(trueVal)
+#====================================================================================================   
 # Initialization
 #====================================================================================================
 label_names = []
@@ -202,7 +202,7 @@ for i in range(len(val_list)):              # i cycles over locations
 #====================================================================================================
 # Estimated RS Water content is normalized between 0 and 1, while validation measurements are in water content (theta) in m3/m3. 
 # Using linear relation between W (estimated) and O (Theta,measured): O = a*W+b. (Full description in Sadeghi 2017)
-SM_est[SM_est>0.35] = np.nan
+SM_est[SM_est>0.35] = np.nan   # outliers based on histograms below
 f_b = np.nanmin(SM_meas5)
 f_a = (np.nanmax(SM_meas5)-np.nanmin(SM_meas5))/(np.nanmax(SM_est)-np.nanmin(SM_est))
 SM_est_O = (f_a*SM_est)+f_b
@@ -227,7 +227,7 @@ for i in range(len(sp_ds)):
     ax.scatter(sp_ds[i],SM_est_O)
 
     # Add statistics
-    ax.text(0.99, 0.01, "$R^2$: %.2f \n MAE: %.2f \n RMSE: %.2f" % (round(calc_r2(sp_ds[i],SM_est),2),round(calc_mae(sp_ds[i],SM_est),2),round(calc_rmse(sp_ds[i],SM_est),2)),
+    ax.text(0.99, 0.01, "$R^2$: %.2f\nMAE: %.2f\nRMSE: %.2f" % (round(calc_r2(sp_ds[i],SM_est),2),round(calc_mae(sp_ds[i],SM_est),2),round(calc_rmse(sp_ds[i],SM_est),2)),
         verticalalignment='bottom', horizontalalignment='right',
         transform=ax.transAxes,
         color='green', fontsize=12)
@@ -257,7 +257,7 @@ for i in range(0,np.shape(sp_ds)[1]):
     ax.scatter(sp_ds[:,i],SM_est_O[:,i])
 
     # Add statistics
-    ax.text(0.99, 0.01, "$R^2$: %.2f \n MAE: %.2f \n RMSE: %.2f" % (round(calc_r2(sp_ds[:,i],SM_est[:,i]),2),round(calc_mae(sp_ds[:,i],SM_est[:,i]),2),round(calc_rmse(sp_ds[:,i],SM_est[:,i]),2)),
+    ax.text(0.99, 0.01, "$R^2$: %.2f\nMAE: %.2f\nRMSE: %.2f" % (round(calc_r2(sp_ds[:,i],SM_est[:,i]),2),round(calc_mae(sp_ds[:,i],SM_est[:,i]),2),round(calc_rmse(sp_ds[:,i],SM_est[:,i]),2)),
         verticalalignment='bottom', horizontalalignment='right',
         transform=ax.transAxes,
         color='green', fontsize=10)
@@ -277,7 +277,7 @@ plt.show()
 
 
 
-#### Plot histograms
+### Plot histograms
 #plt.figure(2)
 
 #plt.subplot(121)    
