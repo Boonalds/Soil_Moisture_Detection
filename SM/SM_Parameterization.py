@@ -103,7 +103,7 @@ for i in range(len(img_list)):
         # Masking out outliers (water bodies and shadows mostly)
         out10[:,out10[0,:,:] < 0] = NODATA_VALUE        # NDVI < 0
         out10[:,out10[1,:,:] < 0] = NODATA_VALUE        # STR < 0
-        out10[:,out10[0,:,:] > 2] = NODATA_VALUE        # NDVI > 2
+        out10[:,out10[0,:,:] > 1] = NODATA_VALUE        # NDVI > 1
         out10[:,out10[1,:,:] > 40] = NODATA_VALUE       # STR > 40
 
         #=====================================
@@ -144,7 +144,7 @@ plt.scatter(NDVI10[:,:,:], STR10[:,:,:], s=0.1,c="r")
 plt.scatter(NDVIres[:,:,:], STRres[:,:,:], s=0.1, c="yellow")
 plt.xlabel('NDVI')
 plt.ylabel('STR')
-plt.savefig('C:/S2_Download/ParameterizationMap/120bil.png', bbox_inches='tight')
+plt.savefig('C:/S2_Download/ParameterizationMap/120bil2.png', bbox_inches='tight')
 
-plt.show()
+#plt.show()
 

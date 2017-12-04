@@ -92,5 +92,3 @@ for i in range(len(img_list)):
         with rasterio.open(SM_outdir+out_fn, "w",**out_meta) as dest:
             dest.write_band(1,SM_tmp)
 
-
-

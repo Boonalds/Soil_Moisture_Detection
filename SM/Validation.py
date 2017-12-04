@@ -34,6 +34,7 @@ import pandas as pd
 #====================================================================================================
 # Parameters:
 sf = 0.1                        # Spacing factor, how much space should there be outside the bounding box; sf * difference min and max x (and y)
+USE_BUFFER = True               # Take median value of 3x3 raster around the validation coordinates as input for Estimated values
 plot_sm_measurements = False    # Define whether the validation values should be plotted.
 create_geojson = False          # Define whether a new GeoJSON should be created.
 PRINT_VAL_OVERVIEW = False      # Print overview of raw validation measurements
@@ -82,7 +83,6 @@ def calc_rmse(trueVal, predVal):
         sys.exit(-1)
     return RMSE
    
-
 
 def calc_r2(trueVal,predVal):
     """Function that calculates the R^2 value, indicating the proportion of the variation that is explained by the predicted values"""
@@ -165,7 +165,12 @@ for i in range(len(img_list)):
         x = int((val_locs[j][0] - gt[0])/gt[1])
         y = int((val_locs[j][1] - gt[3])/gt[5])
         # print("Point "+str(j)+"; x: "+str(x)+ "     y: "+str(y) + ". SM Value: " + str(data[y,x]))
-        SM_est[i,j] = data[y,x]
+        if USE_BUFFER == False:
+            SM_est[i,j] = data[y,x]
+        elif USE_BUFFER == True:
+            SM_est[i,j] = np.nanmedian(data[y-1:y+2,x-1:x+2])
+        else:
+            print("Non acceptable value for USE_BUFFER")
 
 
 #====================================================================================================
@@ -240,10 +245,10 @@ for i in range(len(sp_ds)):
     ax.set_ylim(0, Max_Content)
     ax.legend()
 
-
+plt.tight_layout()
 
 #### Plot per validation location 
-# Set Define which dataset tot use (whih depth)
+# Define which dataset tot use (which depth)
 sp_ds = SM_meas5
 
 
@@ -268,8 +273,59 @@ for i in range(0,np.shape(sp_ds)[1]):
     ax.set_title("Site "+ str(i+1), y=.9)
     ax.set_xlim(0, Max_Content)
     ax.set_ylim(0, Max_Content)
-    ax.legend()
+    ax.legend() 
 
+
+
+plt.tight_layout()
+
+
+
+#### Plot validation errors through time
+# Load data and time as datetime objects
+sp_ds = SM_est_O - SM_meas5
+
+dates = []
+for d in SM_acq_dt:
+    dates.append(datetime.strptime(d, "%d-%b-%y %H:%M:%S"))
+
+date_labels = []
+for dl in SM_acq_dt:
+    dt_obj = datetime.strptime(dl, "%d-%b-%y %H:%M:%S")
+    date_labels.append(datetime.strftime(dt_obj, "%d-%b-%y"))
+
+# Determine x-axis positions
+x1 = datetime.strptime('05-Mar-16', "%d-%b-%y")
+x2 = datetime.strptime('05-May-17', "%d-%b-%y")
+pos = []
+for d in dates:
+    pos.append((d - x1).days)
+
+
+# Filter data using np.isnan
+mask = ~np.isnan(sp_ds)
+filtered_data = [d[m] for d, m in zip(sp_ds, mask)]
+
+
+## Construct the plot
+fig, ax = plt.subplots( figsize=(10,10) )
+bplot1 = ax.boxplot(filtered_data, positions=pos, widths=5, patch_artist=True)
+
+# add labels, legend and make it nicer
+ax.set_xlabel("Time")
+ax.set_ylabel("Estimated "+ r'$\theta$'+ "- measured "+r'$\theta$' + " " + r'$[m^3/m^3]$')
+ax.set_xlim( [ 0, (x2-x1).days ] )
+ax.set_xticklabels(date_labels, rotation=45 )
+ax.axhline(y=0,c="black",ls="--",linewidth=0.5,zorder=0)
+colors = ['pink', 'lightblue', 'lightgreen']
+for box in bplot1['boxes']:
+    # change outline color
+    box.set( color='royalblue', linewidth=1)
+    # change fill color
+    box.set( facecolor = 'lightskyblue' )
+
+for median in bplot1['medians']:
+    median.set(color='royalblue', linewidth=2)
 
 
 plt.tight_layout()
@@ -278,8 +334,7 @@ plt.show()
 
 
 ### Plot histograms
-#plt.figure(2)
-
+#plt.figure(5)
 #plt.subplot(121)    
 #plt.hist(SM_est.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
 #plt.title('Histogram of Estimated SM')
