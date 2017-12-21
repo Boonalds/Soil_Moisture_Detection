@@ -329,7 +329,6 @@ for median in bplot1['medians']:
 
 
 plt.tight_layout()
-plt.show()
 
 
 
@@ -342,6 +341,9 @@ plt.show()
 #plt.subplot(122)
 #plt.hist(SM_meas5.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
 #plt.title('Histogram of Measured SM')
+#plt.tight_layout()
+
+plt.show()
 
 #====================================================================================================
 # Print validation Overview

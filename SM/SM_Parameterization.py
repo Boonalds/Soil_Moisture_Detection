@@ -121,7 +121,7 @@ for i in range(len(img_list)):
             dst_transform = newaff,
             src_crs = src.crs,
             dst_crs = src.crs,
-            resampling = Resampling.bilinear)
+            resampling = Resampling.nearest)
         #===================================
         # Store the indicator values
         #===================================
@@ -144,7 +144,7 @@ plt.scatter(NDVI10[:,:,:], STR10[:,:,:], s=0.1,c="r")
 plt.scatter(NDVIres[:,:,:], STRres[:,:,:], s=0.1, c="yellow")
 plt.xlabel('NDVI')
 plt.ylabel('STR')
-plt.savefig('C:/S2_Download/ParameterizationMap/120bil2.png', bbox_inches='tight')
+plt.savefig('C:/S2_Download/ParameterizationMap/120nn.png', bbox_inches='tight')
 
 #plt.show()
 
