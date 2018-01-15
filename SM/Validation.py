@@ -18,6 +18,7 @@ downloading and processing the correct imagery). The validation data that is use
 #====================================================================================================
 import matplotlib.pyplot as plt
 import geojson
+from sklearn.metrics import r2_score
 import numpy as np
 from datetime import datetime, date, time
 import csv
@@ -25,17 +26,19 @@ import os, os.path, optparse,sys
 import fnmatch
 from osgeo import gdal
 import pyproj
+import warnings
 from pyproj import Proj
 import pandas as pd
 
+warnings.filterwarnings("ignore",category =RuntimeWarning)
 
 #====================================================================================================
 # Define parameters, variables, and allocate directories
 #====================================================================================================
 # Parameters:
 sf = 0.1                        # Spacing factor, how much space should there be outside the bounding box; sf * difference min and max x (and y)
-USE_BUFFER = True               # Take median value of 3x3 raster around the validation coordinates as input for Estimated values
-plot_sm_measurements = False    # Define whether the validation values should be plotted.
+USE_BUFFER = False               # Take median value of 3x3 raster around the validation coordinates as input for Estimated values
+plot_sm_measurements = True    # Define whether the validation values should be plotted.
 create_geojson = False          # Define whether a new GeoJSON should be created.
 PRINT_VAL_OVERVIEW = False      # Print overview of raw validation measurements
 Max_Content = 0.5               # Max expected water content [m3/m3], used for plotting
@@ -44,8 +47,8 @@ Max_Content = 0.5               # Max expected water content [m3/m3], used for p
 ValDir = 'C:/Users/r.maas/Source/Repos/Soil_Moisture_Detection/Data/Validation/Raam/'
 ValDataDir = ValDir+ "data/station_data/"
 valLocData = ValDir+ "data/metadata/Raam_station_locations_WGS84.csv"      # Locations of validation data points
-img_dir = "C:/S2_Download/SM_Maps/"
-
+#img_dir = "C:/S2_Download/SM_Maps/"
+img_dir = "C:/S2_Download/SM_Maps_clear/"
 
 #====================================================================================================
 # Defining functions that are to be used in this script
@@ -88,9 +91,33 @@ def calc_r2(trueVal,predVal):
     """Function that calculates the R^2 value, indicating the proportion of the variation that is explained by the predicted values"""
     if len(trueVal) == len(predVal):
         if np.nansum(trueVal) > 0:
-            SSR = np.nansum((np.array(trueVal) - np.array(predVal))**2)
-            SST = np.nansum(np.array(trueVal)**2)
-            r2 = 1-(SSR/SST)
+            trueVal_a = np.array(trueVal).ravel()
+            predVal_a = np.array(predVal).ravel()
+            matVal = np.array([trueVal_a,predVal_a]).transpose()
+            matVal = matVal[~np.isnan(matVal).any(1)]
+            trueVal_f = matVal[:,0]
+            predVal_f = matVal[:,1]
+            r2=r2_score(trueVal_f, predVal_f)
+
+            #ybar = np.nanmean(np.array(trueVal))
+            #SST = np.nansum((np.array(trueVal)-ybar)**2)
+            #SSR = np.nansum((np.array(predVal) - np.array(predVal))**2)
+            #r2 = 1-(SSR/SST)
+
+
+
+            #ybar = np.nanmean(np.array(trueVal))
+            #SSReg = np.nansum((np.array(predVal) - ybar)**2)
+            #SST = np.nansum((np.array(trueVal)-ybar)**2)
+            #r2 = SSReg/SST
+
+
+            #SSR = np.nansum((np.array(trueVal) - np.array(predVal))**2)
+            #SST = np.nansum(np.array(trueVal)**2)
+            #r2 = 1-(SSR/SST)
+
+
+            
         else:
             return np.NaN
     else:
@@ -208,6 +235,7 @@ for i in range(len(val_list)):              # i cycles over locations
 # Estimated RS Water content is normalized between 0 and 1, while validation measurements are in water content (theta) in m3/m3. 
 # Using linear relation between W (estimated) and O (Theta,measured): O = a*W+b. (Full description in Sadeghi 2017)
 SM_est[SM_est>0.35] = np.nan   # outliers based on histograms below
+SM_est[SM_est<0.01] = np.nan
 f_b = np.nanmin(SM_meas5)
 f_a = (np.nanmax(SM_meas5)-np.nanmin(SM_meas5))/(np.nanmax(SM_est)-np.nanmin(SM_est))
 SM_est_O = (f_a*SM_est)+f_b
@@ -231,8 +259,8 @@ for i in range(len(sp_ds)):
     ax.plot((0,1), 'k', label='1:1')
     ax.scatter(sp_ds[i],SM_est_O)
 
-    # Add statistics
-    ax.text(0.99, 0.01, "$R^2$: %.2f\nMAE: %.2f\nRMSE: %.2f" % (round(calc_r2(sp_ds[i],SM_est),2),round(calc_mae(sp_ds[i],SM_est),2),round(calc_rmse(sp_ds[i],SM_est),2)),
+    # Add statistics        $R^2$: %.2f\n               round(calc_r2(sp_ds[i],SM_est),2)
+    ax.text(0.99, 0.01, "MAE: %.3f\nRMSE: %.3f" % (round(calc_mae(sp_ds[i],SM_est_O),3),round(calc_rmse(sp_ds[i],SM_est_O),3)),
         verticalalignment='bottom', horizontalalignment='right',
         transform=ax.transAxes,
         color='green', fontsize=12)
@@ -261,8 +289,8 @@ for i in range(0,np.shape(sp_ds)[1]):
     ax.plot((0,1), 'k', label='1:1')
     ax.scatter(sp_ds[:,i],SM_est_O[:,i])
 
-    # Add statistics
-    ax.text(0.99, 0.01, "$R^2$: %.2f\nMAE: %.2f\nRMSE: %.2f" % (round(calc_r2(sp_ds[:,i],SM_est[:,i]),2),round(calc_mae(sp_ds[:,i],SM_est[:,i]),2),round(calc_rmse(sp_ds[:,i],SM_est[:,i]),2)),
+    # Add statistics                  round(calc_r2(sp_ds[:,i],SM_est_O[:,i]),2)
+    ax.text(0.99, 0.01, "MAE: %.3f\nRMSE: %.3f" % (round(calc_mae(sp_ds[:,i],SM_est_O[:,i]),3),round(calc_rmse(sp_ds[:,i],SM_est_O[:,i]),3)),
         verticalalignment='bottom', horizontalalignment='right',
         transform=ax.transAxes,
         color='green', fontsize=10)
@@ -313,9 +341,9 @@ bplot1 = ax.boxplot(filtered_data, positions=pos, widths=5, patch_artist=True)
 
 # add labels, legend and make it nicer
 ax.set_xlabel("Time")
-ax.set_ylabel("Estimated "+ r'$\theta$'+ "- measured "+r'$\theta$' + " " + r'$[m^3/m^3]$')
+ax.set_ylabel("Estimation Error "+ r'$[m^3/m^3]$' + "\n(Estimated " + r'$\theta$' + " - Measured " + r'$\theta$'+")")
 ax.set_xlim( [ 0, (x2-x1).days ] )
-ax.set_xticklabels(date_labels, rotation=45 )
+ax.set_xticklabels(date_labels, rotation=45)
 ax.axhline(y=0,c="black",ls="--",linewidth=0.5,zorder=0)
 colors = ['pink', 'lightblue', 'lightgreen']
 for box in bplot1['boxes']:
@@ -330,20 +358,6 @@ for median in bplot1['medians']:
 
 plt.tight_layout()
 
-
-
-### Plot histograms
-#plt.figure(5)
-#plt.subplot(121)    
-#plt.hist(SM_est.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
-#plt.title('Histogram of Estimated SM')
-
-#plt.subplot(122)
-#plt.hist(SM_meas5.ravel(), bins=256, range=(0.0, Max_Content), fc='k', ec='k')
-#plt.title('Histogram of Measured SM')
-#plt.tight_layout()
-
-plt.show()
 
 #====================================================================================================
 # Print validation Overview
@@ -378,26 +392,7 @@ if create_geojson == True:
     with open(ValDir+'Validation_area_Raam.json', 'w') as fp:
         geojson.dump(footprint, fp)
 
-#====================================================================================================
-# Plots
-#====================================================================================================
-if plot_sm_measurements == True:
-    plt.figure(1)
-    
-    # 5cm depth
-    ax1 = plt.subplot(211)
-    for k in range(len(Val_SM_05cm)):
-        ax1.plot(Val_SM_05cm[k], label=label_names[k])
-    ax1.legend()
-    plt.title('5 cm depth')
-    # 10cm depth
-    ax2 = plt.subplot(212)
-    for k in range(len(Val_SM_10cm)):
-        ax2.plot(Val_SM_10cm[k], label=label_names[k])
-    ax2.legend()
-    plt.title('10 cm depth')
-
-    plt.show()
 
 
 
+plt.show()

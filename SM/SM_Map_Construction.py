@@ -54,10 +54,10 @@ img_list=["SENTINEL2A_20160508-104027-456_L2A_T31UFT_D.tif",
           "SENTINEL2A_20170327-105021-460_L2A_T31UFT_D.tif"]
 
 ## With masked out clouds (all images):
-#img_list = []
-#for file in os.listdir(img_dir):
-#    if fnmatch.fnmatch(file, 'SENTINEL2A_201?????-??????-???_L2A_T31UFT_D.tif'):
-#        img_list.append(file)
+img_list = []
+for file in os.listdir(img_dir):
+    if fnmatch.fnmatch(file, 'SENTINEL2A_201?????-??????-???_L2A_T31UFT_D.tif'):
+        img_list.append(file)
 
 
 for i in range(len(img_list)):
